@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" monitorInterval="5">
+  <Appenders>
+    <!-- Console appender configuration -->
+    <Console name="console" target="SYSTEM_OUT">
+      <JsonTemplateLayout eventTemplateUri="classpath:EcsLayout.json">
+	<EventTemplateAdditionalField
+	    key="namespace"
+	    format="JSON"
+	    value='{"$resolver": "logger", "field": "name"}'/>
+      </JsonTemplateLayout>
+    </Console>
+  </Appenders>
+  <Loggers>
+    <!-- Root logger referring to console appender -->
+    <asyncRoot level="info" additivity="false">
+      <AppenderRef ref="console" />
+    </asyncRoot>
+  </Loggers>
+</Configuration>
