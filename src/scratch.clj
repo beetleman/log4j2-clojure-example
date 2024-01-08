@@ -1,7 +1,17 @@
 (ns scratch
-  (:require [clojure.tools.logging :as log]))
+  (:require [beetleman.logging :as b.log]
+            [clojure.core.async :as a]
+            [clojure.tools.logging :as log]))
 
 (log/info "hello")
-(log/error (ex-info "Foo" {}) "hello")
 
-(clojure.tools.logging.impl/name clojure.tools.logging/*logger-factory*)
+(b.log/with-context {:x 22}
+  (future
+    (b.log/with-context {:y 11}
+      (future
+        (a/go
+          (a/<! (a/timeout 200))
+
+          (log/info "hello from nested threads and async")
+
+          )))))
