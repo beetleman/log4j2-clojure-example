@@ -1,9 +1,7 @@
 (ns beetleman.logging
-  (:require [beetleman.logging.slf4j :as slf4j]
+  (:require [beetleman.logging.context :as context]
             [clojure.tools.logging :as log]
             [clojure.tools.logging.impl :as log.impl]))
-
-(def ^:dynamic *context* nil)
 
 (defprotocol Wrapped
   (wraped? [_]))
@@ -23,14 +21,12 @@
       (log.impl/name factory))
     (get-logger [_ logger-ns]
       (let [logger (log.impl/get-logger factory logger-ns)]
-        (if *context*
-          (reify log.impl/Logger
-            (enabled? [_ level]
-              (log.impl/enabled? logger level))
-            (write! [_ level throwable message]
-              (slf4j/with-context *context*
-                (log.impl/write! logger level throwable message))))
-          logger)))))
+        (reify log.impl/Logger
+          (enabled? [_ level]
+            (log.impl/enabled? logger level))
+          (write! [_ level throwable message]
+            (context/restore
+              (log.impl/write! logger level throwable message))))))))
 
 (defn- wrap-fn [f]
   (let [factory log/*logger-factory*]
@@ -40,7 +36,7 @@
         (f)))))
 
 (defn with-context-fn [ctx f]
-  (binding [*context* (merge *context* ctx)]
+  (context/apply ctx
     (wrap-fn f)))
 
 (defmacro with-context [ctx & body]
